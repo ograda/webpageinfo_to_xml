@@ -15,7 +15,7 @@
     * OUTPUT_FILE 	= content.txt (full page and table)
     * OUTPUT_FOLDER = Moves (xml and lua)
 	* URL_TARGET 	= https://pokemondb.net/move/generation/1
-	* #COLLUMS 		= 6	
+	* #COLLUMS 		= 7
     * DEBUG			= False
 
 

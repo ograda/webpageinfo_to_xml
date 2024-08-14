@@ -1,6 +1,7 @@
 import argparse
 import requests
 import csv
+import os
 
 from html.parser import HTMLParser
 
@@ -62,7 +63,7 @@ def save_full_page(full_text, output_target, debugMode):
     with open(output_target, "w", encoding="utf-8") as text_file:
         text_file.write(full_text)
     if debugMode: # Debugging: Print the sucessfull save on output_target       
-        print(f"Full text content saved successfully in {output_target}!")
+        print(f"DEBUG:: Full text content saved successfully in {output_target}!")
     
 #Table parser - copy and save a page based on parameters pre-set
 def save_table_data(table_data, output_target, rowAmount, debugMode):
@@ -71,20 +72,46 @@ def save_table_data(table_data, output_target, rowAmount, debugMode):
         for row in table_data:
             if len(row) == rowAmount:  # Ensure that we are fetching the correct table
                 if debugMode: # Debugging: Print each row
-                    print(f"Processing row {row_count}: {row}")  
+                    print(f"DEBUG:: Processing row {row_count}: {row}")  
                 line = " - ".join(row)  # Join the row data with a "-"
                 text_file.write(line + "\n")  # Write the line to the file
             else:
                 if debugMode: # Debugging: Print each row
-                    print(f"Row {row_count}: params are wrong, ignoring content {row}")  # Content doens't align with the format, ignoring it.
+                    print(f"DEBUG:: Row {row_count}: params are wrong, ignoring content {row}")  # Content doens't align with the format, ignoring it.
             row_count += 1
     if debugMode: # Debugging: Print the sucessfull save on output_target       
-        print(f"Full text content saved successfully in {output_target}!")
+        print(f"DEBUG:: Full text content saved successfully in {output_target}!")
 
 #Xml parser - TODO
-def save_into_xml(debugMode):
+def save_into_xml(table_data, output_folder, rowAmount, debugMode):
+    output_file = "moves.xml"
+    # Create the folder if it doesn't exist
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+        if debugMode:
+            print(f"DEBUG:: Created directory {output_folder}")
+
+    # Full path to the output file
+    output_path = os.path.join(output_folder, output_file)
+    with open(output_path, "w", encoding="utf-8") as file:
+        # Start the XML structure
+        file.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+        file.write('<moves>\n')
+        for row in table_data:
+            if len(row) == rowAmount: # Ensure that we are fetching the correct table
+                if debugMode: # Debugging: Print each row
+                    print(f"DEBUG:: Processing row {row_count}: {row}")  
+                move_name = row[0]
+                move_type = row[1]
+                # Construct the XML content for each move
+                xml_content = f'    <move name="{move_name}" words="{move_name.lower()}" control="revision" script="{move_type}/{move_name}.lua"/>\n'
+                file.write(xml_content)
+                if debugMode:
+                    print(f"DEBUG:: Added {move_name} to XML file")
+        # End the XML structure
+        file.write('</moves>\n')  
     if debugMode: # Debugging: Print the sucessfull save on output_target       
-        print(f"File content created successfully in {debugMode}!")
+        print(f"DEBUG:: All moves saved successfully in {output_file}!")
         
 #Xml parser - TODO
 def save_into_lua(debugMode):
@@ -98,7 +125,7 @@ ExclusiveArguments.add_argument('-xml', action='store_true', help="This will par
 ExclusiveArguments.add_argument('-table', action='store_true', help="This will parse into a .TXT file a table of data lined per row and separated by '-'.")
 ExclusiveArguments.add_argument('-page', action='store_true', help="(DEFAULT) This will parse into a .TXT file the hole page as plain text.")
 ExclusiveArguments.add_argument('-lua', action='store_true', help="This will parse the info as Lua files over multiple files accoding to the setted up method.")
-Arguments.add_argument('-c', '--cols', type=int, default=6, help="(DEFAULT = 6) Number of columns to consider in the table. this is used on XML and TABLE options.")
+Arguments.add_argument('-c', '--cols', type=int, default=7, help="(DEFAULT = 7) Number of columns to consider in the table. this is used on XML and TABLE options.")
 Arguments.add_argument('-f', '--outfile', type=str, default="content.txt", help="(DEFAULT = web_content.txt) the file that is receiving the text info if we are using PAGE or Table options.")
 Arguments.add_argument('-l', '--dir', '-outfolder', type=str, default="Moves", help="(DEFAULT = Moves) the folder that will be receiving the xml files if we are using XML option.")
 Arguments.add_argument('-d', '--debug', action='store_true', help="activate console debug messages.")
@@ -144,12 +171,12 @@ if args.table:
     
 # Step 3.3 -> user wants to save in XML files
 if args.xml:
-    save_into_xml(args.debug)
+    save_into_xml(parser.table_data, args.dir, args.cols,args.debug)
     
 # Step 3.4 -> user wants to save in Lua files
 if args.lua:
     save_into_lua(args.debug)
     
-    
+
 # Step #last: code finished successfully, execution terminated, informing user
 print("Code execution finished successfully.")
