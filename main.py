@@ -149,6 +149,10 @@ def save_into_xml(table_data, output_folder, rowAmount, debugMode):
         print(f"DEBUG:: All moves saved successfully in {output_file}!")
         
 #Lua parser - create a parser for lua files
+def load_lua_template(template_path):
+    with open(template_path, 'r', encoding='utf-8') as template_file:
+        return template_file.read()
+
 def save_into_lua(table_data, output_folder, rowAmount, debugMode):
     """
     Generates and saves Lua scripts based on table data for each move.
@@ -168,82 +172,30 @@ def save_into_lua(table_data, output_folder, rowAmount, debugMode):
         if debugMode:
             print(f"DEBUG:: Created directory {output_folder}")
             
+    # Define the Lua script template        
+    lua_template = load_lua_template('template.lua')    
     for row in table_data:
         if len(row) == rowAmount:  # Ensure that we are fetching the correct table
             if debugMode:  # Debugging: Print each row
                 print(f"DEBUG:: Processing row: {row}")        
-            move_name = row[0]
-            move_type = row[1]
-            move_category = row[2]
-            move_power = row[3]
-            move_accuracy = row[4]
-            move_PP = row[5]
-            move_Effect = row[6]
-                
-            # Create a unique file name based on the move name (row[0])
-            output_file = f"{move_name}.lua"
-            output_path = os.path.join(output_folder, output_file)
-            
+            move_name = row[0]              
             # Define the Lua script content
-            lua_content = f'''
-    
--- This move type is '{move_type}'
--- This move category is '{move_category}' ( put into XML file? )
--- This move PP is {move_PP} (evaluate if this is necessary, usage? conversion?)
--- This move EFFECT/DESCRIPTION is '{move_Effect}' this shoud be reflected in the spell routing
-
-local power = {move_power}
-local name = "{move_name}"
-local accuracy = {move_accuracy}
-local eff = 1 -- change magic effect
-
--- adapt area of spell
-local area = {{ 
-    {{0, 0, 0, 0, 0}},
-    {{0, 1, 1, 1, 0}},
-    {{0, 1, 2, 1, 0}},
-    {{0, 1, 1, 1, 0}},
-    {{0, 0, 0, 0, 0}}
-}}
-
-local combat = Combat()
--- Spell Damage
-combat:setMove(power, accuracy, name)
-combat:setParameter(COMBAT_PARAM_MAGICAL, FALSE)
--- Spell Animation
-combat:setParameter(COMBAT_PARAM_TYPE, COMBAT_NORMALDAMAGE)
-combat:setArea(createCombatArea(area))
--- Condition to apply?
-combat:setParameter(COMBAT_PARAM_CONDITION, CONDITION_ATTRIBUTES) -- REVIEW CONDITION
-combat:setParameter(COMBAT_PARAM_CONDITIONCHANCE, 100)
-combat:setParameter(COMBAT_PARAM_CONDITIONVALUE, 13)
-combat:setParameter(COMBAT_PARAM_CONDITIONTIME, 30)
-combat:setParameter(COMBAT_PARAM_CONDITIONSKILL, STAT_DEFENSE)
-
-function onCastSpell(creature, variant, isHotkey)
-    creature:say(string.upper(name), TALKTYPE_MONSTER_SAY)
-    
-    -- remove if not using area
-    local pos = creature:getPosition()
-    pos.x = pos.x + 1
-    pos.y = pos.y + 1
-    Position(pos):sendMagicEffect(eff)
-    
-    return combat:execute(creature, variant)
-end
-'''
+            lua_content = lua_template.format(
+                move_name = move_name,
+                move_type = row[1],
+                move_category = row[2],
+                move_power = row[3],
+                move_accuracy = row[4],
+                move_PP = row[5],
+                move_Effect = row[6]
+            ) 
+            # Create a unique file name based on the move name (row[0])
             output_file = f"{move_name}.lua"
             output_path = os.path.join(output_folder, output_file)
             with open(output_path, "w", encoding="utf-8") as file:
                 file.write(lua_content) 
-                
                 if debugMode:
-                    print(f"DEBUG:: Lua script saved successfully in {output_path}")       
-            with open(output_path, "w", encoding="utf-8") as file:
-                file.write(lua_content)       
-                if debugMode:
-                    print(f"DEBUG:: Lua script saved successfully in {output_path}")
-                    
+                    print(f"DEBUG:: Lua script saved successfully in {output_path}")               
     if debugMode: # Debugging: Print the sucessfull save on output_target       
         print(f"DEBUG:: All moves saved successfully in {output_file}!")
 
