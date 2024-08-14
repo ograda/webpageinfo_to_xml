@@ -4,15 +4,6 @@ import csv
 
 from html.parser import HTMLParser
 
-""""
-DEFAULT ARGUMENTS
-OUTPUT_TYPE = full page
-TABLE_COLLUMS_AMOUNT = 1 #if fetching a table, # collumns (this will be retrieved by arguments or be set to this default value)
-URL_TARGET = "webpage"  # This is be the desired URL (this will be retrieved by arguments or be set to this default value)
-OUTPUT_TARGET = "file.txt" #file that will be created to store information (this will be retrieved by arguments or be set to this default value)
-OUTPUT_FOLDER = "Folder" #folder that will be created to store information (this will be retrieved by arguments or be set to this default value)
-""" 
-
 # Custom HTMLTableParser to extract text
 class HTMLTableParser(HTMLParser):
     def __init__(self):
