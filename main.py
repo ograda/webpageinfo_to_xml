@@ -20,6 +20,10 @@ class HTMLTableParser(HTMLParser):
             self.current_data = []
         elif tag == 'td':
             self.in_cell = True
+        elif tag == 'img' and self.in_cell:
+            for attr in attrs:
+                if attr[0] == 'alt':  # or 'title', depending on how the content is labeled
+                    self.current_data.append(attr[1])
 
     def handle_endtag(self, tag):
         if tag == 'tr':
@@ -38,6 +42,12 @@ class HTMLTextParser(HTMLParser):
     def __init__(self):
         super().__init__()
         self.text = []
+        
+    def handle_starttag(self, tag, attrs):
+        if tag == 'img':
+            for attr in attrs:
+                if attr[0] == 'alt':  # Extract the 'alt' text if available
+                    self.text.append(attr[1])
 
     def handle_data(self, data):
         self.text.append(data)
